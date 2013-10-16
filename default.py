@@ -524,6 +524,7 @@ def getServerSections ( ip_address, port, name, uuid):
                     'address'    : ip_address+":"+port ,
                     'serverName' : name ,
                     'uuid'       : uuid ,
+					'section'    : sections.get('uuid','').encode('utf-8')
                     'path'       : path ,
                     'token'      : sections.get('accessToken',None) ,
                     'location'   : "local" ,
@@ -3485,6 +3486,7 @@ def skin( server_list=None, type=None ):
 
         #Build that listing..
         WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , section['title'])
+        WINDOW.setProperty("plexbmc.%d.sectionID"    % (sectionCount) , section['section'])
         WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , section['serverName'])
         WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow("+window+",plugin://plugin.video.plexbmc/?url="+s_url+",return)")
         WINDOW.setProperty("plexbmc.%d.art"      % (sectionCount) , extraData['fanart_image']+qToken)
@@ -3858,6 +3860,7 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeSeasonNumber" % seasonCount, media.get('parentIndex','').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.ShowTitle" % seasonCount, media.get('title','Unknown').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Thumb" % seasonCount, s_thumb+qToken)
+			WINDOW.setProperty("Plexbmc.LatestEpisode.%s.sectionID" % seasonCount, media.get('librarySectionUUID','').encode('utf-8'))
             seasonCount += 1
 
             printDebug("Building Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
@@ -4026,6 +4029,7 @@ def shelfOnDeck( server_list=None ):
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeasonNumber" % seasonCount, media.get('parentIndex','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle" % seasonCount, media.get('title','Unknown').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % seasonCount, s_thumb+qToken)
+                WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.sectionID" % seasonCount, media.get('librarySectionUUID','').encode('utf-8'))				
                 seasonCount += 1
 
                 printDebug("Building Recent On Deck window title: %s" % media.get('title','Unknown').encode('UTF-8'))
