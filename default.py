@@ -3800,7 +3800,7 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Rating" % movieCount, media.get('rating','').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Duration" % movieCount, movie_runtime)
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Thumb" % movieCount, m_thumb+qToken)
-            WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % seasonCount, media.get('librarySectionUUID','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % movieCount, media.get('librarySectionUUID','').encode('UTF-8'))
 
             movieCount += 1
 
@@ -3973,7 +3973,7 @@ def shelfOnDeck( server_list=None ):
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Year" % movieCount, media.get('year','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Rating" % movieCount, media.get('rating','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Thumb" % movieCount, m_thumb+qToken)
-                WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % seasonCount, media.get('librarySectionUUID','').encode('UTF-8'))
+                WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % movieCount, media.get('librarySectionUUID','').encode('UTF-8'))
 
                 movieCount += 1
 
