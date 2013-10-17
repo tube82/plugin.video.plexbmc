@@ -3763,7 +3763,7 @@ def shelf( server_list=None ):
 
             for eachitem in tree:
                 section_count +=1
-                if (section_count >= 25):
+                if (section_count >= 5):
                     continue
 
                 if direction:
