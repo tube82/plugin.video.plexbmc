@@ -3749,8 +3749,6 @@ def shelf( server_list=None ):
         aToken=getAuthDetails({'token': _PARAM_TOKEN} )
         qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
 
-        server_list = discoverAllServers()
-        #For each of the servers we have identified
         for section in getAllSections(server_list):
             #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
                 #continue
@@ -3763,13 +3761,14 @@ def shelf( server_list=None ):
 
             for eachitem in tree:
                 section_count +=1
-                if (section_count >= 5):
+                libraryuuid = tree.attrib["librarySectionUUID"]
+                if (section_count > 5):
                     continue
 
                 if direction:
-                    added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                    added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                 else:
-                    added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                    added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                     full_count += 1
                 
     library_filter = __settings__.getSetting('libraryfilter')
@@ -3782,6 +3781,7 @@ def shelf( server_list=None ):
         server_address=added_list[index][1]
         aToken=added_list[index][2]
         qToken=added_list[index][3]
+        libuuid = added_list[index][4]
         
         if media.get('type',None) == "movie":
 
@@ -3809,7 +3809,7 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Rating" % movieCount, media.get('rating','').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Duration" % movieCount, movie_runtime)
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Thumb" % movieCount, m_thumb+qToken)
-            WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % movieCount, media.get('librarySectionUUID','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % movieCount, libuuid.encode('UTF-8'))
 
             movieCount += 1
 
@@ -3933,7 +3933,6 @@ def shelfOnDeck( server_list=None ):
             _PARAM_TOKEN = server_details.get('token','')
             aToken=getAuthDetails({'token': _PARAM_TOKEN} )
             qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
-            server_list = discoverAllServers()
             #For each of the servers we have identified
             for section in getAllSections(server_list):
                 #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
@@ -3947,7 +3946,7 @@ def shelfOnDeck( server_list=None ):
 
                 for eachitem in tree:
                     section_count +=1
-                    if (section_count >= 25):
+                    if (section_count > 5):
                         continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
