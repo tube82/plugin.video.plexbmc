@@ -3752,7 +3752,7 @@ def shelf( server_list=None ):
         server_list = discoverAllServers()
         #For each of the servers we have identified
         for section in getAllSections(server_list):
-            if section.get("type") != "episode" and section.get("type") != "movie" and section.get("type") != "album"
+            if section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"
                 continue
             section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
@@ -3936,7 +3936,7 @@ def shelfOnDeck( server_list=None ):
             server_list = discoverAllServers()
             #For each of the servers we have identified
             for section in getAllSections(server_list):
-                if section.get("type") != "episode" and section.get("type") != "movie" and section.get("type") != "album"
+                if section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"
                     continue
                 section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
