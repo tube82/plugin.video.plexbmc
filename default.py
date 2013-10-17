@@ -3752,7 +3752,9 @@ def shelf( server_list=None ):
         server_list = discoverAllServers()
         #For each of the servers we have identified
         for section in getAllSections(server_list):
-       
+            if section.get("type") != "episode" and section.get("type") != "movie" and section.get("type") != "album"
+                continue
+            section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
             if tree is None:
                 xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
@@ -3760,6 +3762,9 @@ def shelf( server_list=None ):
                 return
 
             for eachitem in tree:
+                section_count +=1
+                if section_count > 25
+                    continue
 
                 if direction:
                     added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
@@ -3900,7 +3905,7 @@ def shelfOnDeck( server_list=None ):
     added_list={}    
     direction=True
     full_count=0
-    
+
     if server_list is None:
         server_list=discoverAllServers()
 
@@ -3931,7 +3936,9 @@ def shelfOnDeck( server_list=None ):
             server_list = discoverAllServers()
             #For each of the servers we have identified
             for section in getAllSections(server_list):
-           
+                if section.get("type") != "episode" and section.get("type") != "movie" and section.get("type") != "album"
+                    continue
+                section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
                 if tree is None:
                     xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
@@ -3939,7 +3946,9 @@ def shelfOnDeck( server_list=None ):
                     return
 
                 for eachitem in tree:
-
+                    section_count +=1
+                    if section_count > 25
+                        continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
                     else:
