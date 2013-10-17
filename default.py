@@ -3752,8 +3752,8 @@ def shelf( server_list=None ):
         server_list = discoverAllServers()
         #For each of the servers we have identified
         for section in getAllSections(server_list):
-            #if section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"
-                #continue
+            if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
+                continue
             section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
             if tree is None:
@@ -3763,7 +3763,7 @@ def shelf( server_list=None ):
 
             for eachitem in tree:
                 section_count +=1
-                if section_count >= 25
+                if (section_count >= 25):
                     continue
 
                 if direction:
@@ -3936,8 +3936,8 @@ def shelfOnDeck( server_list=None ):
             server_list = discoverAllServers()
             #For each of the servers we have identified
             for section in getAllSections(server_list):
-                #if section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"
-                    #continue
+                if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
+                    continue
                 section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
                 if tree is None:
@@ -3947,7 +3947,7 @@ def shelfOnDeck( server_list=None ):
 
                 for eachitem in tree:
                     section_count +=1
-                    if section_count >= 25
+                    if (section_count >= 25):
                         continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
