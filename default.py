@@ -3762,7 +3762,7 @@ def shelf( server_list=None ):
             for eachitem in tree:
                 section_count +=1
                 libraryuuid = tree.attrib["librarySectionUUID"]
-                if (section_count > 5):
+                if (section_count > 25):
                     continue
 
                 if direction:
@@ -3946,12 +3946,13 @@ def shelfOnDeck( server_list=None ):
 
                 for eachitem in tree:
                     section_count +=1
-                    if (section_count > 5):
+                    libraryuuid = tree.attrib["librarySectionUUID"]
+                    if (section_count > 25):
                         continue
                     if direction:
-                        added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                        added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                     else:
-                        added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                        added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                         full_count += 1
                     
         library_filter = __settings__.getSetting('libraryfilter')
@@ -3964,6 +3965,7 @@ def shelfOnDeck( server_list=None ):
             server_address=added_list[index][1]
             aToken=added_list[index][2]
             qToken=added_list[index][3]
+            libuuid = added_list[index][4]
             
             if media.get('type',None) == "movie":
 
@@ -3988,7 +3990,7 @@ def shelfOnDeck( server_list=None ):
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Year" % movieCount, media.get('year','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Rating" % movieCount, media.get('rating','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Thumb" % movieCount, m_thumb+qToken)
-                WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % movieCount, media.get('librarySectionUUID','').encode('UTF-8'))
+                WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % movieCount, libuuid.encode('UTF-8'))
 
                 movieCount += 1
 
