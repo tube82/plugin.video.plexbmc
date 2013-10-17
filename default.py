@@ -3730,9 +3730,9 @@ def shelf( server_list=None ):
         
     if __settings__.getSetting('homeshelf') == '1':
         direction=False
-        endpoint="/library/onDeck"
+        endpoint="/onDeck"
     else:
-        endpoint="/library/recentlyAdded"
+        endpoint="/recentlyAdded"
         
     randomNumber=str(random.randint(1000000000,9999999999))
         
@@ -3748,20 +3748,24 @@ def shelf( server_list=None ):
         _PARAM_TOKEN = server_details.get('token','')
         aToken=getAuthDetails({'token': _PARAM_TOKEN} )
         qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
-        
-        tree=getXML('http://'+server_details['server']+":"+server_details['port']+endpoint)
-        if tree is None:
-            xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
-            clearShelf()
-            return
 
-        for eachitem in tree:
+        server_list = discoverAllServers()
+        #For each of the servers we have identified
+        for section in getAllSections(server_list):
+       
+            tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
+            if tree is None:
+                xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                clearShelf()
+                return
 
-            if direction:
-                added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
-            else:
-                added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
-                full_count += 1
+            for eachitem in tree:
+
+                if direction:
+                    added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                else:
+                    added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                    full_count += 1
                 
     library_filter = __settings__.getSetting('libraryfilter')
     acceptable_level = __settings__.getSetting('contentFilter')
@@ -3907,7 +3911,7 @@ def shelfOnDeck( server_list=None ):
         
     if __settings__.getSetting('homeshelf') == '2':
         direction=False
-        endpoint="/library/onDeck"
+        endpoint="/onDeck"
 
         
         randomNumber=str(random.randint(1000000000,9999999999))
@@ -3924,20 +3928,23 @@ def shelfOnDeck( server_list=None ):
             _PARAM_TOKEN = server_details.get('token','')
             aToken=getAuthDetails({'token': _PARAM_TOKEN} )
             qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
-            
-            tree=getXML('http://'+server_details['server']+":"+server_details['port']+endpoint)
-            if tree is None:
-                xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
-                clearOnDeckShelf()
-                return
+            server_list = discoverAllServers()
+            #For each of the servers we have identified
+            for section in getAllSections(server_list):
+           
+                tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
+                if tree is None:
+                    xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                    clearOnDeckShelf()
+                    return
 
-            for eachitem in tree:
+                for eachitem in tree:
 
-                if direction:
-                    added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
-                else:
-                    added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
-                    full_count += 1
+                    if direction:
+                        added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                    else:
+                        added_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken )
+                        full_count += 1
                     
         library_filter = __settings__.getSetting('libraryfilter')
         acceptable_level = __settings__.getSetting('contentFilter')
