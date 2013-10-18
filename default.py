@@ -3878,7 +3878,7 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeSeasonNumber" % seasonCount, media.get('parentIndex','').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.ShowTitle" % seasonCount, media.get('title','Unknown').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Thumb" % seasonCount, s_thumb+qToken)
-            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.uuid" % seasonCount, media.get('librarySectionUUID','').encode('utf-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.uuid" % seasonCount, libuuid..encode('utf-8'))
             seasonCount += 1
 
             printDebug("Building Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
@@ -4058,7 +4058,7 @@ def shelfOnDeck( server_list=None ):
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeasonNumber" % seasonCount, media.get('parentIndex','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle" % seasonCount, media.get('title','Unknown').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % seasonCount, s_thumb+qToken)
-                WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.uuid" % seasonCount, media.get('librarySectionUUID','').encode('UTF-8'))
+                WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.uuid" % seasonCount, libuuid..encode('UTF-8'))
                 seasonCount += 1
 
                 printDebug("Building Recent On Deck window title: %s" % media.get('title','Unknown').encode('UTF-8'))
