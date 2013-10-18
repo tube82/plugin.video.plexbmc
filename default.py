@@ -3762,7 +3762,7 @@ def shelf( server_list=None ):
             for eachitem in tree:
                 section_count +=1
                 libraryuuid = tree.attrib["librarySectionUUID"]
-                if (section_count > 25):
+                if (section_count > 12 and (section.get("type","unknown") != "artist" > 20)):
                     continue
 
                 if direction:
@@ -3947,7 +3947,7 @@ def shelfOnDeck( server_list=None ):
                 for eachitem in tree:
                     section_count +=1
                     libraryuuid = tree.attrib["librarySectionUUID"]
-                    if (section_count > 25):
+                    if (section_count > 12):
                         continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
