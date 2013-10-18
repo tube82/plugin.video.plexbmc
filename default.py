@@ -3750,8 +3750,8 @@ def shelf( server_list=None ):
         qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
 
         for section in getAllSections(server_list):
-            #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
-                #continue
+            if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
+                continue
             section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
             if tree is None:
@@ -3935,8 +3935,8 @@ def shelfOnDeck( server_list=None ):
             qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
             #For each of the servers we have identified
             for section in getAllSections(server_list):
-                #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "album"):
-                    #continue
+                if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
+                    continue
                 section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
                 if tree is None:
