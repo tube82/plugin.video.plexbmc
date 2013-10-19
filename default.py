@@ -3702,7 +3702,7 @@ def displayContent( acceptable_level, content_level ):
     return False
 
 def add_listitem(item, thumb, path):
-    listitem = xbmcgui.ListItem('%s [COLOR=White]%s - %s[/COLOR]' %(item.get('title','Unknown').encode('UTF-8'),item.get('year','Unknown').encode('UTF-8'), item.get('rating','Unknown').encode('UTF-8')), thumbnailImage=thumb, path='PlayMedia(%s)' %(path))
+    listitem = xbmcgui.ListItem('%s [COLOR=White]%s - %s[/COLOR]' %(item.get('title','Unknown').encode('UTF-8'),item.get('year','Unknown').encode('UTF-8'), item.get('rating','Unknown').encode('UTF-8')), thumbnailImage=thumb, path=path)
     return listitem
 
 
@@ -3806,7 +3806,7 @@ def shelf( server_list=None ):
                 printDebug("SKIPPING: Library Filter match: %s = %s " % (library_filter, media.get('librarySectionID')))
                 continue
 
-            m_url="plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            m_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
             m_thumb=getThumb(media,server_address)
             movie_runtime=media.get('duration','0')
             movie_runtime=str(int(float(movie_runtime)/1000/60))
