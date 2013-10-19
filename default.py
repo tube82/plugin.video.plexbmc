@@ -3185,7 +3185,7 @@ def music( url, tree=None ):
 
     xbmcplugin.endOfDirectory(pluginhandle,cacheToDisc=False)
 
-def getThumb( data, server, transcode=False, width=None, height=None ):
+def getThumb( data, server, transcode=True, width=512, height=512 ):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
@@ -3213,7 +3213,7 @@ def getThumb( data, server, transcode=False, width=None, height=None ):
     else:
         return g_loc+'/resources/plex.png'
 
-def getFanart( data, server, transcode=True ):
+def getFanart( data, server, transcode=True, width=1280, height=720 ):
     '''
         Simply take a URL or path and determine how to format for fanart
         @ input: elementTree element, server name
@@ -3716,6 +3716,7 @@ def shelf( server_list=None ):
     movieCount=1
     seasonCount=1
     musicCount=1
+    photoCount=1
     added_list={}    
     direction=True
     full_count=0
@@ -3725,7 +3726,7 @@ def shelf( server_list=None ):
 
     if server_list == {}:
         xbmc.executebuiltin("XBMC.Notification(Unable to see any media servers,)")
-        clearShelf(0,0,0)
+        clearShelf(0,0,0,0)
         return
         
     if __settings__.getSetting('homeshelf') == '1':
@@ -3750,7 +3751,7 @@ def shelf( server_list=None ):
         qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
 
         for section in getAllSections(server_list):
-            if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
+            if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show" and section.get("type","unknown") != "photo"):
                 continue
             section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
@@ -3762,8 +3763,8 @@ def shelf( server_list=None ):
             for eachitem in tree:
                 section_count +=1
                 libraryuuid = tree.attrib["librarySectionUUID"]
-                if (section_count > 25):
-                    continue
+                #if (section_count > 50 and (section.get("type","unknown") != "artist" > 20)):
+                #    continue
 
                 if direction:
                     added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
@@ -3860,6 +3861,23 @@ def shelf( server_list=None ):
             printDebug("Building Recent window url: %s" % s_url)
             printDebug("Building Recent window thumb: %s" % s_thumb)
 
+        elif media.get('type',None) == "photo":
+
+            printDebug("Found a recent photo entry: [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            s_url="ActivateWindow(Pictures, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PHOTOS, aToken)
+            s_thumb=getThumb(media,server_address)
+            
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Path" % photoCount, s_url)
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Title" % photoCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Thumb" % photoCount, s_thumb+qToken)
+            
+            photoCount += 1
+
+            printDebug("Building Recent photo window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building Recent photo window url: %s" % s_url)
+            printDebug("Building Recent photo window thumb: %s" % s_thumb)
+
         elif media.get('type',None) == "episode":
 
             printDebug("Found an onDeck episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
@@ -3885,13 +3903,13 @@ def shelf( server_list=None ):
             printDebug("Building Recent window url: %s" % s_url)
             printDebug("Building Recent window thumb: %s" % s_thumb)
             
-    clearShelf( movieCount, seasonCount, musicCount)
+    clearShelf( movieCount, seasonCount, musicCount, photoCount)
 
 def shelfOnDeck( server_list=None ):
     #Gather some data and set the window properties
     printDebug("== ENTER: shelfOnDeck() ==", False)
     
-    if __settings__.getSetting('movieShelf') == "false" and __settings__.getSetting('tvShelf') == "false" and __settings__.getSetting('musicShelf') == "false":
+    if __settings__.getSetting('movieShelf') == "false" and __settings__.getSetting('tvShelf') == "false":
         printDebug("Disabling all shelf items")
         clearOnDeckShelf()
         return
@@ -3901,7 +3919,6 @@ def shelfOnDeck( server_list=None ):
 
     movieCount=1
     seasonCount=1
-    musicCount=1
     added_list={}    
     direction=True
     full_count=0
@@ -3935,7 +3952,7 @@ def shelfOnDeck( server_list=None ):
             qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
             #For each of the servers we have identified
             for section in getAllSections(server_list):
-                if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
+                if (section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
                     continue
                 section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
@@ -3947,8 +3964,8 @@ def shelfOnDeck( server_list=None ):
                 for eachitem in tree:
                     section_count +=1
                     libraryuuid = tree.attrib["librarySectionUUID"]
-                    if (section_count > 25):
-                        continue
+                    #if (section_count > 50):
+                    #    continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                     else:
@@ -3994,9 +4011,9 @@ def shelfOnDeck( server_list=None ):
 
                 movieCount += 1
 
-                printDebug("Building On Deck Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
-                printDebug("Building On Deck Recent window url: %s" % m_url)
-                printDebug("Building On Deck Recent window thumb: %s" % m_thumb)
+                printDebug("Building On Deck Movie window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+                printDebug("Building On Deck Movie window url: %s" % m_url)
+                printDebug("Building On Deck Movie window thumb: %s" % m_thumb)
 
             elif media.get('type',None) == "season":
 
@@ -4019,26 +4036,6 @@ def shelfOnDeck( server_list=None ):
                 printDebug("Building On Deck Recent window title: %s" % media.get('parentTitle','Unknown').encode('UTF-8'))
                 printDebug("Building On Deck Recent window url: %s" % s_url)
                 printDebug("Building On Deck Recent window thumb: %s" % s_thumb)
-
-            elif media.get('type') == "album":
-
-                if __settings__.getSetting('musicShelf') == "false":
-                    WINDOW.clearProperty("Plexbmc.OnDeckAlbum.1.Path" )
-                    continue
-                printDebug("Found a recent On Deck album entry")
-
-                s_url="ActivateWindow(MusicFiles, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TRACKS, aToken)
-                s_thumb=getThumb(media,server_address)
-
-                WINDOW.setProperty("Plexbmc.OnDeckAlbum.%s.Path" % musicCount, s_url )
-                WINDOW.setProperty("Plexbmc.OnDeckAlbum.%s.Title" % musicCount, media.get('title','Unknown').encode('UTF-8'))
-                WINDOW.setProperty("Plexbmc.OnDeckAlbum.%s.Artist" % musicCount, media.get('parentTitle','Unknown').encode('UTF-8'))
-                WINDOW.setProperty("Plexbmc.OnDeckAlbum.%s.Thumb" % musicCount, s_thumb+qToken)
-                musicCount += 1
-
-                printDebug("Building Recent On Deck window title: %s" % media.get('parentTitle','Unknown').encode('UTF-8'))
-                printDebug("Building Recent On Deck window url: %s" % s_url)
-                printDebug("Building Recent On Deck window thumb: %s" % s_thumb)
 
             elif media.get('type',None) == "episode":
 
@@ -4065,9 +4062,9 @@ def shelfOnDeck( server_list=None ):
                 printDebug("Building Recent On Deck window url: %s" % s_url)
                 printDebug("Building Recent On Deck window thumb: %s" % s_thumb)
 	            
-        clearOnDeckShelf( movieCount, seasonCount, musicCount)
+        clearOnDeckShelf( movieCount, seasonCount)
 
-def clearShelf (movieCount=0, seasonCount=0, musicCount=0):
+def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     #Clear out old data
     WINDOW = xbmcgui.Window( 10000 )
     printDebug("Clearing unused properties")
@@ -4076,7 +4073,11 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0):
         for i in range(movieCount, 50+1):
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Path"   % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Title"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Year"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Rating"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Duration"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Thumb"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestMovie.%s.uuid"  % ( i ) )
         printDebug("Done clearing movies")
     except: pass
 
@@ -4087,11 +4088,12 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0):
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.EpisodeSeason"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.ShowTitle"      % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.Thumb"          % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.uuid"  % ( i ) )
         printDebug("Done clearing tv")
     except: pass
 
     try:
-        for i in range(musicCount, 50+1):
+        for i in range(musicCount, 25+1):
             WINDOW.clearProperty("Plexbmc.LatestAlbum.%s.Path"   % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestAlbum.%s.Title"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestAlbum.%s.Artist" % ( i ) )
@@ -4099,9 +4101,17 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0):
         printDebug("Done clearing music")
     except: pass
 
+    try:
+        for i in range(photoCount, 25+1):
+            WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Path"   % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Title"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Thumb"  % ( i ) )
+        printDebug("Done clearing photos")
+    except: pass
+
 
     return
-def clearOnDeckShelf (movieCount=0, seasonCount=0, musicCount=0):
+def clearOnDeckShelf (movieCount=0, seasonCount=0):
     #Clear out old data
     WINDOW = xbmcgui.Window( 10000 )
     printDebug("Clearing unused On Deck properties")
@@ -4111,6 +4121,7 @@ def clearOnDeckShelf (movieCount=0, seasonCount=0, musicCount=0):
             WINDOW.clearProperty("Plexbmc.OnDeckMovie.%s.Path"   % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckMovie.%s.Title"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckMovie.%s.Thumb"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.OnDeckMovie.%s.uuid"  % ( i ) )
         printDebug("Done clearing On Deck movies")
     except: pass
 
@@ -4121,16 +4132,8 @@ def clearOnDeckShelf (movieCount=0, seasonCount=0, musicCount=0):
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeason"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle"      % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.Thumb"          % ( i ) )
+            WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.uuid"  % ( i ) )
         printDebug("Done clearing On Deck tv")
-    except: pass
-
-    try:
-        for i in range(musicCount, 50+1):
-            WINDOW.clearProperty("Plexbmc.OnDeckAlbum.%s.Path"   % ( i ) )
-            WINDOW.clearProperty("Plexbmc.OnDeckAlbum.%s.Title"  % ( i ) )
-            WINDOW.clearProperty("Plexbmc.OnDeckAlbum.%s.Artist" % ( i ) )
-            WINDOW.clearProperty("Plexbmc.OnDeckAlbum.%s.Thumb"  % ( i ) )
-        printDebug("Done clearing On Deck music")
     except: pass
 
 
