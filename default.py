@@ -3717,8 +3717,8 @@ def shelf( server_list=None ):
 
     #Get the global host variable set in settings
     WINDOW = xbmcgui.Window( 10000 )
-    self.recent_movies = WINDOW.getControl(311)
-    self.ondeck_movies = WINDOW.getControl(312)
+    recent_movies = WINDOW.getControl(311)
+    ondeck_movies = WINDOW.getControl(312)
 
     movieCount=1
     seasonCount=1
@@ -3819,7 +3819,7 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Thumb" % movieCount, m_thumb+qToken)
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % movieCount, libuuid.encode('UTF-8'))
 
-            self.recent_movies.addItem(add_listitem(media, m_thumb, m_url))
+            recent_movies.addItem(add_listitem(media, m_thumb, m_url))
 
             movieCount += 1
 
