@@ -3702,7 +3702,7 @@ def displayContent( acceptable_level, content_level ):
     return False
 
 def add_listitem(item, thumb, path):
-    listitem = xbmcgui.ListItem('%s [COLOR=White]%s • %s[/COLOR]' %(item.get('title','Unknown').encode('UTF-8'),item.get('year','Unknown').encode('UTF-8'), item.get('rating','Unknown').encode('UTF-8')), thumbnailImage=thumb, path=path)
+    listitem = xbmcgui.ListItem('%s [COLOR=White]%s - %s[/COLOR]' %(item.get('title','Unknown').encode('UTF-8'),item.get('year','Unknown').encode('UTF-8'), item.get('rating','Unknown').encode('UTF-8')), thumbnailImage=thumb, path=path)
     return listitem
 
 
