@@ -3708,7 +3708,7 @@ def add_listitem(item, thumb, path_to_play):
     listitem.setPath(path=path_to_play)
     return listitem
 def pluginPlay(playtype, url, mode, t):
-    if(playtype == "video")
+    if(playtype == "video"):
         #PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
         ActivateWindow(Weather)
 
