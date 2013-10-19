@@ -3005,6 +3005,7 @@ def movieTag(url, server, tree, movie, randomNumber):
     addGUIItem(u,details,extraData,context,folder=False)
     return
 
+
 def getMediaData ( tag_dict ):
     '''
         Extra the media details from the XML
@@ -3706,7 +3707,10 @@ def add_listitem(item, thumb, path_to_play):
     #listitem.setPath(path='ActivateWindow(Weather)')
     listitem.setPath(path=path_to_play)
     return listitem
-
+def pluginPlay(playtype, url, mode, t):
+    if(playtype == "video")
+        #PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+        ActivateWindow(Weather)
 
 def shelf( server_list=None ):
     #Gather some data and set the window properties
@@ -3808,7 +3812,7 @@ def shelf( server_list=None ):
                 printDebug("SKIPPING: Library Filter match: %s = %s " % (library_filter, media.get('librarySectionID')))
                 continue
 
-            m_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            m_url="plugin://plugin.video.plexbmc?playtype=video&url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
             m_thumb=getThumb(media,server_address)
             movie_runtime=media.get('duration','0')
             movie_runtime=str(int(float(movie_runtime)/1000/60))
@@ -4575,6 +4579,14 @@ except:
     params={}
 
 #Now try and assign some data to them
+playtype_url=params.get('playtype',None)
+
+if playtype_url:
+    url=params.get('url',None)
+    mode=params.get('mode',None)
+    t=params.get('t',None)
+    pluginPlay(playtype_url, url, mode, t)
+
 param_url=params.get('url',None)
 
 if param_url and ( param_url.startswith('http') or param_url.startswith('file') ):
