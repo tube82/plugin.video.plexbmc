@@ -3925,6 +3925,8 @@ def shelfOnDeck( server_list=None ):
 
     #Get the global host variable set in settings
     WINDOW = xbmcgui.Window( 10000 )
+    recent_movies = WINDOW.getControl(311)
+    ondeck_movies = WINDOW.getControl(312)
 
     movieCount=1
     seasonCount=1
@@ -4017,7 +4019,7 @@ def shelfOnDeck( server_list=None ):
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Rating" % movieCount, media.get('rating','').encode('UTF-8'))
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Thumb" % movieCount, m_thumb+qToken)
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % movieCount, libuuid.encode('UTF-8'))
-
+                recent_movies.addItem(add_listitem(media, m_thumb, m_url))
                 movieCount += 1
 
                 printDebug("Building On Deck Movie window title: %s" % media.get('title','Unknown').encode('UTF-8'))
