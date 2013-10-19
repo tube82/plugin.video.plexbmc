@@ -3763,8 +3763,8 @@ def shelf( server_list=None ):
             for eachitem in tree:
                 section_count +=1
                 libraryuuid = tree.attrib["librarySectionUUID"]
-                if (section_count > 12 and (section.get("type","unknown") != "artist" > 20)):
-                    continue
+                #if (section_count > 50 and (section.get("type","unknown") != "artist" > 20)):
+                #    continue
 
                 if direction:
                     added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
@@ -3874,9 +3874,9 @@ def shelf( server_list=None ):
             
             photoCount += 1
 
-            printDebug("Building Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
-            printDebug("Building Recent window url: %s" % m_url)
-            printDebug("Building Recent window thumb: %s" % m_thumb)
+            printDebug("Building Recent photo window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building Recent photo window url: %s" % s_url)
+            printDebug("Building Recent photo window thumb: %s" % s_thumb)
 
         elif media.get('type',None) == "episode":
 
@@ -3964,8 +3964,8 @@ def shelfOnDeck( server_list=None ):
                 for eachitem in tree:
                     section_count +=1
                     libraryuuid = tree.attrib["librarySectionUUID"]
-                    if (section_count > 12):
-                        continue
+                    #if (section_count > 50):
+                    #    continue
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                     else:
@@ -4011,9 +4011,9 @@ def shelfOnDeck( server_list=None ):
 
                 movieCount += 1
 
-                printDebug("Building On Deck Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
-                printDebug("Building On Deck Recent window url: %s" % m_url)
-                printDebug("Building On Deck Recent window thumb: %s" % m_thumb)
+                printDebug("Building On Deck Movie window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+                printDebug("Building On Deck Movie window url: %s" % m_url)
+                printDebug("Building On Deck Movie window thumb: %s" % m_thumb)
 
             elif media.get('type',None) == "season":
 
@@ -4070,7 +4070,7 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     printDebug("Clearing unused properties")
 
     try:
-        for i in range(movieCount, 60+1):
+        for i in range(movieCount, 50+1):
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Path"   % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Title"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestMovie.%s.Year"  % ( i ) )
@@ -4082,7 +4082,7 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     except: pass
 
     try:
-        for i in range(seasonCount, 60+1):
+        for i in range(seasonCount, 50+1):
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.Path"           % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.EpisodeTitle"   % ( i ) )
             WINDOW.clearProperty("Plexbmc.LatestEpisode.%s.EpisodeSeason"  % ( i ) )
@@ -4104,8 +4104,8 @@ def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     try:
         for i in range(photoCount, 25+1):
             WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Path"   % ( i ) )
-            WINDOW.clearProperty("Plexbmc.LatestAlbum.%s.Title"  % ( i ) )
-            WINDOW.clearProperty("Plexbmc.LatestAlbum.%s.Thumb"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Title"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.LatestPhoto.%s.Thumb"  % ( i ) )
         printDebug("Done clearing photos")
     except: pass
 
@@ -4132,7 +4132,7 @@ def clearOnDeckShelf (movieCount=0, seasonCount=0):
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeason"  % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle"      % ( i ) )
             WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.Thumb"          % ( i ) )
-            WINDOW.clearProperty("Plexbmc.OnDeckMovie.%s.uuid"  % ( i ) )
+            WINDOW.clearProperty("Plexbmc.OnDeckEpisode.%s.uuid"  % ( i ) )
         printDebug("Done clearing On Deck tv")
     except: pass
 
