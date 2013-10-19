@@ -3701,6 +3701,11 @@ def displayContent( acceptable_level, content_level ):
     printDebug ("NOT OK to display")
     return False
 
+def add_listitem(item, thumb, path):
+    listitem = xbmcgui.ListItem('%s [COLOR=White]%s • %s[/COLOR]' %(item.get('title','Unknown').encode('UTF-8'),item.get('year','Unknown').encode('UTF-8'), item.get('rating','Unknown').encode('UTF-8')), thumbnailImage=thumb, path=path)
+    return listitem
+
+
 def shelf( server_list=None ):
     #Gather some data and set the window properties
     printDebug("== ENTER: shelf() ==", False)
@@ -3712,6 +3717,8 @@ def shelf( server_list=None ):
 
     #Get the global host variable set in settings
     WINDOW = xbmcgui.Window( 10000 )
+    self.recent_movies = WINDOW.getControl(311)
+    self.ondeck_movies = WINDOW.getControl(312)
 
     movieCount=1
     seasonCount=1
@@ -3811,6 +3818,8 @@ def shelf( server_list=None ):
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Duration" % movieCount, movie_runtime)
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.Thumb" % movieCount, m_thumb+qToken)
             WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % movieCount, libuuid.encode('UTF-8'))
+
+            self.recent_movies.addItem(add_listitem(media, m_thumb, m_url))
 
             movieCount += 1
 
