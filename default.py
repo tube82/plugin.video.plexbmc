@@ -3213,6 +3213,24 @@ def getThumb( data, server, transcode=True, width=512, height=512 ):
     else:
         return g_loc+'/resources/plex.png'
 
+def getShelfThumb( data, server, transcode=True, width=256, height=384 ):
+    '''
+        Simply take a URL or path and determine how to format for images
+        @ input: elementTree element, server name
+        @ return formatted URL
+    '''
+    
+    thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
+
+    if thumbnail[0:4] == "http" :
+        return photoTranscode(server,thumbnail,width,height)
+
+    elif thumbnail[0] == '/':
+        return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
+    
+    else:
+        return 'http://'+server+thumbnail
+
 def getFanart( data, server, transcode=True, width=1280, height=720 ):
     '''
         Simply take a URL or path and determine how to format for fanart
@@ -3807,7 +3825,7 @@ def shelf( server_list=None ):
                 continue
 
             m_url="plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
-            m_thumb=getThumb(media,server_address)
+            m_thumb=getShelfThumb(media,server_address)
             movie_runtime=media.get('duration','0')
             movie_runtime=str(int(float(movie_runtime)/1000/60))
 
@@ -3834,7 +3852,7 @@ def shelf( server_list=None ):
                 continue
 
             s_url="ActivateWindow(VideoLibrary, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TVEPISODES, aToken)
-            s_thumb=getThumb(media,server_address)
+            s_thumb=getShelfThumb(media,server_address)
 
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Path" % seasonCount, s_url )
             WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeTitle" % seasonCount, '')
@@ -3856,7 +3874,7 @@ def shelf( server_list=None ):
             printDebug("Found a recent album entry")
 
             s_url="ActivateWindow(MusicFiles, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TRACKS, aToken)
-            s_thumb=getThumb(media,server_address)
+            s_thumb=getShelfThumb(media,server_address)
 
             WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Path" % musicCount, s_url )
             WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Title" % musicCount, media.get('title','Unknown').encode('UTF-8'))
@@ -3868,22 +3886,21 @@ def shelf( server_list=None ):
             printDebug("Building Recent window url: %s" % s_url)
             printDebug("Building Recent window thumb: %s" % s_thumb)
 
-        elif media.get('type',None) == "photo":
+        elif media.get('type') == "photo":
 
             printDebug("Found a recent photo entry: [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
 
-            s_url="ActivateWindow(Pictures, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PHOTOS, aToken)
-            s_thumb=getThumb(media,server_address)
+            p_url="ActivateWindow(Pictures, plugin://plugin.video.plexbmc/?url=http://%s%s&mode=%s%s,return" % ( server_address, "/recentlyAdded", _MODE_PHOTOS, aToken)
+            p_thumb=getShelfThumb(media,server_address)
             
-            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Path" % photoCount, s_url)
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Path" % photoCount, p_url)
             WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Title" % photoCount, media.get('title','Unknown').encode('UTF-8'))
-            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Thumb" % photoCount, s_thumb+qToken)
-            
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Thumb" % photoCount, p_thumb+qToken)
             photoCount += 1
 
             printDebug("Building Recent photo window title: %s" % media.get('title','Unknown').encode('UTF-8'))
-            printDebug("Building Recent photo window url: %s" % s_url)
-            printDebug("Building Recent photo window thumb: %s" % s_thumb)
+            printDebug("Building Recent photo window url: %s" % p_url)
+            printDebug("Building Recent photo window thumb: %s" % p_thumb)
 
         elif media.get('type',None) == "episode":
 
@@ -4007,7 +4024,7 @@ def shelfOnDeck( server_list=None ):
                     continue
 
                 m_url="plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
-                m_thumb=getThumb(media,server_address)
+                m_thumb=getShelfThumb(media,server_address)
 
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Path" % movieCount, m_url)
                 WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Title" % movieCount, media.get('title','Unknown').encode('UTF-8'))
@@ -4031,7 +4048,7 @@ def shelfOnDeck( server_list=None ):
                     continue
 
                 s_url="ActivateWindow(VideoLibrary, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TVEPISODES, aToken)
-                s_thumb=getThumb(media,server_address)
+                s_thumb=getShelfThumb(media,server_address)
 
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Path" % seasonCount, s_url )
                 WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeTitle" % seasonCount, '')
@@ -4215,7 +4232,7 @@ def shelfChannel( server_list = None):
 
 
                 p_url="ActivateWindow(%s, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( channel_window, getLinkURL('http://'+server_details['server']+":"+server_details['port'],media,server_details['server']+":"+server_details['port']), mode , aToken)
-                p_thumb=getThumb(media,server_details['server']+":"+server_details['port'])
+                p_thumb=getShelfThumb(media,server_details['server']+":"+server_details['port'])
 
                 WINDOW.setProperty("Plexbmc.LatestChannel.%s.Path" % channelCount, p_url)
                 WINDOW.setProperty("Plexbmc.LatestChannel.%s.Title" % channelCount, media.get('title','Unknown'))
