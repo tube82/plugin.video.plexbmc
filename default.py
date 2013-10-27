@@ -3434,6 +3434,7 @@ def skin( server_list=None, type=None ):
 
     sectionCount=0
     serverCount=0
+    sharedCount=0
     shared_flag={}
     hide_shared = __settings__.getSetting('hide_shared')
     
@@ -3453,24 +3454,28 @@ def skin( server_list=None, type=None ):
         if section['type'] == 'show':
             if hide_shared == "true" and section.get('owned') == '0':
                 shared_flag['show']=True
+                sharedCount += 1
                 continue
             window="VideoLibrary"
             mode=_MODE_TVSHOWS
         if  section['type'] == 'movie':
             if hide_shared == "true" and section.get('owned') == '0':
                 shared_flag['movie']=True
+                sharedCount += 1
                 continue
             window="VideoLibrary"
             mode=_MODE_MOVIES
         if  section['type'] == 'artist':
             if hide_shared == "true" and section.get('owned') == '0':
                 shared_flag['artist']=True
+                sharedCount += 1
                 continue
             window="MusicFiles"
             mode=_MODE_ARTISTS
         if  section['type'] == 'photo':
             if hide_shared == "true" and section.get('owned') == '0':
                 shared_flag['photo']=True
+                sharedCount += 1
                 continue
             window="Pictures"
             mode=_MODE_PHOTOS
@@ -3518,21 +3523,21 @@ def skin( server_list=None, type=None ):
         sectionCount += 1
 
    
-    if type == "nocat":
+    if type == "nocat" and hide_shared == 'true' and sharedCount != 0:
         WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
         WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
         WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_ALL)+",return)")
-        WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "movie")
+        WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
         WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
         sectionCount += 1
     
-    else:
-   
+    elif sharedCount != 0:
+    
         if shared_flag.get('movie'):
             WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
             WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
             WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_MOVIES)+",return)")
-            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "movie")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
             WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
             sectionCount += 1
 
@@ -3540,7 +3545,7 @@ def skin( server_list=None, type=None ):
             WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
             WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
             WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_SHOWS)+",return)")
-            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "show")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
             WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
             sectionCount += 1
             
@@ -3548,7 +3553,7 @@ def skin( server_list=None, type=None ):
             WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
             WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
             WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(MusicFiles,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_MUSIC)+",return)")
-            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "artist")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
             WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
             sectionCount += 1
             
@@ -3556,10 +3561,12 @@ def skin( server_list=None, type=None ):
             WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
             WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
             WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(Pictures,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_PHOTOS)+",return)")
-            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "photo")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
             WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
             sectionCount += 1
         
+    else:
+        pass    
         
     #For each of the servers we have identified
     numOfServers=len(server_list)
