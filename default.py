@@ -3542,7 +3542,7 @@ def skin( server_list=None, type=None ):
 
    
     if type == "nocat" and hide_shared == 'true' and sharedCount != 0:
-        WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
+        WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared Content")
         WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
         WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_ALL)+",return)")
         WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
@@ -3776,23 +3776,19 @@ def shelf( server_list=None ):
         qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
 
         for section in getAllSections(server_list):
-            if (section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show" and section.get("type","unknown") != "photo"):
-                continue
-            section_count=0
+            #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show" and section.get("type","unknown") != "photo"):
+            #    continue
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
+            
             if tree is None:
                 #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
                 #clearShelf()
                 #return
-                print "Unable to find RecentlyAdded items on server: "+server_details['serverName']
+                print "PLEXBMC -> RecentlyAdded items not found on: "+server_details['serverName']+section.get("path")
                 continue
 
             for eachitem in tree:
-                section_count +=1
                 libraryuuid = tree.attrib["librarySectionUUID"]
-                #if (section_count > 50 and (section.get("type","unknown") != "artist" > 20)):
-                #    continue
-
                 if direction:
                     added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                 else:
@@ -3954,7 +3950,7 @@ def shelfOnDeck( server_list=None ):
 
     if server_list == {}:
         xbmc.executebuiltin("XBMC.Notification(Unable to see any media servers,)")
-        clearOnDeckShelf(0,0,0)
+        clearOnDeckShelf(0,0)
         return
         
     if __settings__.getSetting('homeshelf') == '2':
@@ -3980,20 +3976,17 @@ def shelfOnDeck( server_list=None ):
             for section in getAllSections(server_list):
                 if (section.get("type","unknown") != "movie" and section.get("type","unknown") != "show"):
                     continue
-                section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
                 if tree is None:
-                    print "Unable to find OnDeck items on server: "+server_details['serverName']
+                    print "PLEXBMC -> OnDeck items not found on: "+server_details['serverName']+section.get("path")
                     #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
                     #clearOnDeckShelf()
                     #return
                     continue
 
                 for eachitem in tree:
-                    section_count +=1
                     libraryuuid = tree.attrib["librarySectionUUID"]
-                    #if (section_count > 50):
-                    #    continue
+               
                     if direction:
                         added_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
                     else:
