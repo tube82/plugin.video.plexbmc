@@ -3781,9 +3781,11 @@ def shelf( server_list=None ):
             section_count=0
             tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
             if tree is None:
-                xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
-                clearShelf()
-                return
+                #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                #clearShelf()
+                #return
+                print "Unable to find RecentlyAdded items on server: "+server_details['serverName']
+                continue
 
             for eachitem in tree:
                 section_count +=1
@@ -3981,9 +3983,11 @@ def shelfOnDeck( server_list=None ):
                 section_count=0
                 tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+endpoint)
                 if tree is None:
-                    xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
-                    clearOnDeckShelf()
-                    return
+                    print "Unable to find OnDeck items on server: "+server_details['serverName']
+                    #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                    #clearOnDeckShelf()
+                    #return
+                    continue
 
                 for eachitem in tree:
                     section_count +=1
