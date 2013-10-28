@@ -53,7 +53,7 @@ BASE_RESOURCE_PATH = xbmc.translatePath( os.path.join( __cwd__, 'resources', 'li
 PLUGINPATH=xbmc.translatePath( os.path.join( __cwd__) )
 CACHEDATA=PLUGINPATH+"/cache"
 sys.path.append(BASE_RESOURCE_PATH)
-PLEXBMC_VERSION="3.2.2"
+PLEXBMC_VERSION="3.2.5"
 
 print "===== PLEXBMC START ====="
 
@@ -3222,15 +3222,18 @@ def getShelfThumb( data, server, transcode=True, width=256, height=384 ):
     
     thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
 
-    if thumbnail[0:4] == "http" :
+    if thumbnail == '':
+        return ''
+    
+    elif thumbnail[0:4] == "http" :
         return photoTranscode(server,thumbnail,width,height)
 
     elif thumbnail[0] == '/':
         return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
     
     else:
-        return 'http://'+server+thumbnail
-
+        return ''
+    
 def getFanart( data, server, transcode=True, width=1280, height=720 ):
     '''
         Simply take a URL or path and determine how to format for fanart
