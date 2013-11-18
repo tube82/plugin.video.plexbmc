@@ -3185,7 +3185,7 @@ def music( url, tree=None ):
 
     xbmcplugin.endOfDirectory(pluginhandle,cacheToDisc=False)
 
-def getThumb( data, server, transcode=True, width=512, height=512 ):
+def getThumb( data, server, transcode=True, width=720, height=720 ):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
@@ -3194,46 +3194,34 @@ def getThumb( data, server, transcode=True, width=512, height=512 ):
     
     if g_skipimages == "true":
         return ''
-        
+    
     thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
-
-
+    
     if thumbnail == '':
         return g_loc+'/resources/plex.png'
 
-    elif thumbnail[0:4] == "http" :
-        return thumbnail
-
-    elif thumbnail[0] == '/':
-        if transcode:
-            return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
-        else:
-            return 'http://'+server+thumbnail
-
     else:
-        return g_loc+'/resources/plex.png'
+        return photoTranscode(server, thumbnail, width, height)
 
-def getShelfThumb( data, server, transcode=True, width=256, height=384 ):
+def getShelfThumb( data, server, seasonThumb, width=400, height=400 ):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
         @ return formatted URL
     '''
     
-    thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
-
+    if seasonThumb == 1:
+        thumbnail=data.get('grandparentThumb','').split('?t')[0].encode('utf-8')
+    
+    else: 
+        thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
+    
     if thumbnail == '':
-        return ''
-    
-    elif thumbnail[0:4] == "http" :
-        return photoTranscode(server,thumbnail,width,height)
+        return g_loc+'/resources/plex.png'
 
-    elif thumbnail[0] == '/':
-        return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
-    
     else:
-        return ''
-    
+        return photoTranscode(server, thumbnail, width, height)
+
 def getFanart( data, server, transcode=True, width=1280, height=720 ):
     '''
         Simply take a URL or path and determine how to format for fanart
