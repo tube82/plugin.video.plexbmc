@@ -229,7 +229,9 @@ g_txheaders = {
 
 #Set up holding variable for session ID
 global g_sessionID
-g_sessionID=None
+g_sessionID = None
+global section_list
+section_list = None
         
 def discoverAllServers( ):
     '''
@@ -619,6 +621,7 @@ def getAllSections( server_list = None ):
                     
             myplex_section_list = [x for x in myplex_section_list if not x['uuid'] == each_server['uuid']]
             
+    global section_list
     section_list += myplex_section_list
 
     return section_list
@@ -3644,6 +3647,215 @@ def skin( server_list=None, type=None ):
 
     return
 
+def amberskin(server_list=None, type=None):
+    #Gather some data and set the window properties
+    printDebug("== ENTER: skin() ==", False)
+    #Get the global host variable set in settings
+    WINDOW = xbmcgui.Window( 10000 )
+
+    sectionCount=0
+    serverCount=0
+    sharedCount=0
+    shared_flag={}
+    hide_shared = __settings__.getSetting('hide_shared')
+
+    if server_list is None:
+        server_list = discoverAllServers()
+
+    #For each of the servers we have identified
+    for section in getAllSections(server_list):
+
+        extraData={ 'fanart_image' : getFanart(section, section['address']) ,
+                    'thumb'        : getFanart(section, section['address'], False) }
+
+        #Determine what we are going to do process after a link is selected by the user, based on the content we find
+
+        path=section['path']
+
+        if section['type'] == 'show':
+            if hide_shared == "true" and section.get('owned') == '0':
+                shared_flag['show']=True
+                sharedCount += 1
+                continue
+            window="VideoLibrary"
+            mode=_MODE_TVSHOWS
+        if  section['type'] == 'movie':
+            if hide_shared == "true" and section.get('owned') == '0':
+                shared_flag['movie']=True
+                sharedCount += 1
+                continue
+            window="VideoLibrary"
+            mode=_MODE_MOVIES
+        if  section['type'] == 'artist':
+            if hide_shared == "true" and section.get('owned') == '0':
+                shared_flag['artist']=True
+                sharedCount += 1
+                continue
+            window="MusicFiles"
+            mode=_MODE_ARTISTS
+        if  section['type'] == 'photo':
+            if hide_shared == "true" and section.get('owned') == '0':
+                shared_flag['photo']=True
+                sharedCount += 1
+                continue
+            window="Pictures"
+            mode=_MODE_PHOTOS
+
+        aToken=getAuthDetails(section)
+        qToken=getAuthDetails(section, prefix='?')
+
+        if g_secondary == "true":
+            mode=_MODE_GETCONTENT
+        else:
+            path=path+'/all'
+
+        s_url='http://%s%s&mode=%s%s' % ( section['address'], path, mode, aToken)
+
+        #Build that listing..
+        WINDOW.setProperty("plexbmc.%d.uuid" % (sectionCount) , section['sectionuuid'])
+        WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , section['title'])
+        WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , section['serverName'])
+        WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow("+window+",plugin://plugin.video.plexbmc/?url="+s_url+",return)")
+        WINDOW.setProperty("plexbmc.%d.art"      % (sectionCount) , extraData['fanart_image']+qToken)
+        WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , section['type'])
+        WINDOW.setProperty("plexbmc.%d.icon"     % (sectionCount) , extraData['thumb']+qToken)
+        WINDOW.setProperty("plexbmc.%d.thumb"    % (sectionCount) , extraData['thumb']+qToken)
+        WINDOW.setProperty("plexbmc.%d.partialpath" % (sectionCount) , "ActivateWindow("+window+",plugin://plugin.video.plexbmc/?url=http://"+section['address']+section['path'])
+        WINDOW.setProperty("plexbmc.%d.search" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/search?type=1", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.recent" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/recentlyAdded", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.all" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/all", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.viewed" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/recentlyViewed", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.ondeck" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/onDeck", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.released" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/newest", mode, aToken) )
+        WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "false")
+
+        if section['type'] == "artist":
+            WINDOW.setProperty("plexbmc.%d.album" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/albums", mode, aToken) )
+            WINDOW.setProperty("plexbmc.%d.search" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/search?type=10", mode, aToken) )
+        elif section['type'] == "photo":
+            WINDOW.setProperty("plexbmc.%d.year" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/year", mode, aToken) )
+        elif section['type'] == "show":
+            WINDOW.setProperty("plexbmc.%d.search" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/search?type=4", mode, aToken) )
+        elif section['type'] == "movie":
+            WINDOW.setProperty("plexbmc.%d.search" % (sectionCount) , "ActivateWindow(%s,plugin://plugin.video.plexbmc/?url=http://%s%s%s&mode=%s%s,return)" % (window, section['address'], section['path'], "/search?type=1", mode, aToken) )
+
+        printDebug("Building window properties index [" + str(sectionCount) + "] which is [" + section['title'] + "]")
+        printDebug("PATH in use is: ActivateWindow("+window+",plugin://plugin.video.plexbmc/?url="+s_url+",return)")
+        sectionCount += 1
+
+
+    if type == "nocat" and hide_shared == 'true' and sharedCount != 0:
+        WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared Content")
+        WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
+        WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_ALL)+",return)")
+        WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
+        WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
+        sectionCount += 1
+
+    elif sharedCount != 0:
+
+        if shared_flag.get('movie'):
+            WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
+            WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
+            WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_MOVIES)+",return)")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
+            WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
+            sectionCount += 1
+
+        if shared_flag.get('show'):
+            WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
+            WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
+            WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_SHOWS)+",return)")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
+            WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
+            sectionCount += 1
+
+        if shared_flag.get('artist'):
+            WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
+            WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
+            WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(MusicFiles,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_MUSIC)+",return)")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
+            WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
+            sectionCount += 1
+
+        if shared_flag.get('photo'):
+            WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared...")
+            WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
+            WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(Pictures,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_PHOTOS)+",return)")
+            WINDOW.setProperty("plexbmc.%d.type"     % (sectionCount) , "shared")
+            WINDOW.setProperty("plexbmc.%d.shared"     % (sectionCount) , "true")
+            sectionCount += 1
+
+    else:
+        pass
+
+    #For each of the servers we have identified
+    numOfServers=len(server_list)
+
+    for server in server_list.values():
+
+        if server['class'] == "secondary":
+            continue
+
+        aToken=getAuthDetails(server)
+        qToken=getAuthDetails(server, prefix='?')
+
+        if g_channelview == "true":
+            WINDOW.setProperty("plexbmc.channel", "1")
+            WINDOW.setProperty("plexbmc.%d.server.channel" % (serverCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=http://"+server['server']+":"+server['port']+"/system/plugins/all&mode=21"+aToken+",return)")
+        else:
+            WINDOW.clearProperty("plexbmc.channel")
+            WINDOW.setProperty("plexbmc.%d.server.video" % (serverCount) , "http://"+server['server']+":"+server['port']+"/video&mode=7"+aToken)
+            WINDOW.setProperty("plexbmc.%d.server.music" % (serverCount) , "http://"+server['server']+":"+server['port']+"/music&mode=17"+aToken)
+            WINDOW.setProperty("plexbmc.%d.server.photo" % (serverCount) , "http://"+server['server']+":"+server['port']+"/photos&mode=16"+aToken)
+
+        WINDOW.setProperty("plexbmc.%d.server.online" % (serverCount) , "http://"+server['server']+":"+server['port']+"/system/plexonline&mode=19"+aToken)
+
+        WINDOW.setProperty("plexbmc.%d.server" % (serverCount) , server['serverName'])
+        printDebug ("Name mapping is :" + server['serverName'])
+
+        serverCount+=1
+
+    #Clear out old data
+    try:
+        printDebug("Clearing properties from [" + str(sectionCount) + "] to [" + WINDOW.getProperty("plexbmc.sectionCount") + "]")
+
+        for i in range(sectionCount, int(WINDOW.getProperty("plexbmc.sectionCount"))+1):
+            WINDOW.clearProperty("plexbmc.%d.uuid"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.title"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.subtitle" % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.url"      % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.path"     % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.window"   % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.art"      % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.type"     % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.icon"     % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.thumb"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.recent"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.all"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.search"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.viewed"    % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.ondeck" % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.released" % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.shared"     % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.album"     % ( i ) )
+            WINDOW.clearProperty("plexbmc.%d.year"     % ( i ) )
+
+    except:
+        pass
+
+    printDebug("Total number of skin sections is [" + str(sectionCount) + "]")
+    printDebug("Total number of servers is ["+str(numOfServers)+"]")
+    WINDOW.setProperty("plexbmc.sectionCount", str(sectionCount))
+    WINDOW.setProperty("plexbmc.numServers", str(numOfServers))
+    if __settings__.getSetting('myplex_user') != '':
+        WINDOW.setProperty("plexbmc.queue" , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=http://myplexqueue&mode=24,return)")
+        WINDOW.setProperty("plexbmc.myplex",  "1" )
+    else:
+        WINDOW.clearProperty("plexbmc.myplex")
+
+    return fullShelf (server_list)
+
 def displayContent( acceptable_level, content_level ):
 
     '''
@@ -4077,6 +4289,306 @@ def shelfOnDeck( server_list=None ):
                 printDebug("Building OnDeck window thumb: %s" % s_thumb)
 	            
         clearOnDeckShelf( movieCount, seasonCount)
+
+def fullShelf(server_list=None):
+    #Gather some data and set the window properties
+    printDebug("== ENTER: shelf() ==", False)
+
+    #if __settings__.getSetting('movieShelf') == "false" and __settings__.getSetting('tvShelf') == "false" and __settings__.getSetting('musicShelf') == "false":
+    #    printDebug("Disabling all shelf items")
+    #    clearShelf()
+    #    return
+
+    #Get the global host variable set in settings
+    WINDOW = xbmcgui.Window( 10000 )
+
+    recentMovieCount=1
+    recentSeasonCount=1
+    recentMusicCount=1
+    recentPhotoCount=1
+    ondeckMovieCount=1
+    ondeckSeasonCount=1
+    recent_list={}
+    ondeck_list={}
+    direction=True
+    full_count=0
+
+    if server_list is None:
+        server_list=discoverAllServers()
+
+    if server_list == {}:
+        xbmc.executebuiltin("XBMC.Notification(Unable to see any media servers,)")
+        clearShelf(0,0,0,0)
+        return
+
+    randomNumber = str(random.randint(1000000000,9999999999))
+
+    for server_details in server_list.values():
+
+        if server_details['class'] == "secondary":
+            continue
+
+        if not server_details['owned'] == '1':
+            continue
+
+        global _PARAM_TOKEN
+        _PARAM_TOKEN = server_details.get('token','')
+        aToken=getAuthDetails({'token': _PARAM_TOKEN} )
+        qToken=getAuthDetails({'token': _PARAM_TOKEN}, prefix='?')
+
+        for section in getAllSections(server_list):
+            #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show" and section.get("type","unknown") != "photo"):
+            #    continue
+            tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+"/recentlyAdded")
+
+            if tree is None:
+                #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                #clearShelf()
+                #return
+                print "PLEXBMC -> RecentlyAdded items not found on: "+server_details['serverName']+section.get("path")
+                continue
+
+            for eachitem in tree:
+                libraryuuid = tree.attrib["librarySectionUUID"]
+                if direction:
+                    recent_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
+                else:
+                    recent_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
+                    full_count += 1
+
+        full_count = 0
+
+        for section in getAllSections(server_list):
+            #if (section.get("type","unknown") != "episode" and section.get("type","unknown") != "artist" and section.get("type","unknown") != "movie" and section.get("type","unknown") != "show" and section.get("type","unknown") != "photo"):
+            #    continue
+            tree=getXML('http://'+server_details['server']+":"+server_details['port']+section.get("path")+"/onDeck")
+
+            if tree is None:
+                #xbmc.executebuiltin("XBMC.Notification(Unable to contact server: "+server_details['serverName']+",)")
+                #clearShelf()
+                #return
+                print "PLEXBMC -> OnDeck items not found on: "+server_details['serverName']+section.get("path")
+                continue
+
+            for eachitem in tree:
+                libraryuuid = tree.attrib["librarySectionUUID"]
+                if direction:
+                    ondeck_list[int(eachitem.get('addedAt',0))] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
+                else:
+                    ondeck_list[full_count] = (eachitem, server_details['server']+":"+server_details['port'], aToken, qToken, libraryuuid )
+                    full_count += 1
+
+    #For each of the servers we have identified
+    for index in sorted(recent_list, reverse=direction):
+
+        media = recent_list[index][0]
+        server_address = recent_list[index][1]
+        aToken = recent_list[index][2]
+        qToken = recent_list[index][3]
+        libuuid = recent_list[index][4]
+
+        if media.get('type',None) == "movie":
+
+            printDebug("Found a recent movie entry: [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('movieShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.LatestMovie.1.Path" )
+                continue
+
+            m_url="plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            m_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+            movie_runtime=media.get('duration','0')
+            movie_runtime=str(int(float(movie_runtime)/1000/60))
+
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Path" % recentMovieCount, m_url)
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Title" % recentMovieCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Year" % recentMovieCount, media.get('year','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Rating" % recentMovieCount, media.get('rating','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Duration" % recentMovieCount, movie_runtime)
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.Thumb" % recentMovieCount, m_thumb)
+            WINDOW.setProperty("Plexbmc.LatestMovie.%s.uuid" % recentMovieCount, libuuid.encode('UTF-8'))
+
+            recentMovieCount += 1
+
+            printDebug("Building Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building Recent window url: %s" % m_url)
+            printDebug("Building Recent window thumb: %s" % m_thumb)
+
+        elif media.get('type',None) == "season":
+
+            printDebug("Found a recent season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('tvShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
+                continue
+
+            s_url="ActivateWindow(VideoLibrary, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TVEPISODES, aToken)
+            s_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Path" % recentSeasonCount, s_url )
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeTitle" % recentSeasonCount, '')
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeSeason" % recentSeasonCount, media.get('title','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.ShowTitle" % recentSeasonCount, media.get('parentTitle','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Thumb" % recentSeasonCount, s_thumb)
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.uuid" % recentSeasonCount, media.get('librarySectionUUID','').encode('UTF-8'))
+
+            recentSeasonCount += 1
+
+            printDebug("Building Recent window title: %s" % media.get('parentTitle','Unknown').encode('UTF-8'))
+            printDebug("Building Recent window url: %s" % s_url)
+            printDebug("Building Recent window thumb: %s" % s_thumb)
+
+        elif media.get('type') == "album":
+
+            if __settings__.getSetting('musicShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.LatestAlbum.1.Path" )
+                continue
+            printDebug("Found a recent album entry")
+
+            s_url="ActivateWindow(MusicFiles, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TRACKS, aToken)
+            s_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+
+            WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Path" % recentMusicCount, s_url )
+            WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Title" % recentMusicCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Artist" % recentMusicCount, media.get('parentTitle','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestAlbum.%s.Thumb" % recentMusicCount, s_thumb)
+
+            recentMusicCount += 1
+
+            printDebug("Building Recent window title: %s" % media.get('parentTitle','Unknown').encode('UTF-8'))
+            printDebug("Building Recent window url: %s" % s_url)
+            printDebug("Building Recent window thumb: %s" % s_thumb)
+
+        elif media.get('type') == "photo":
+
+            printDebug("Found a recent photo entry: [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            p_url="ActivateWindow(Pictures, plugin://plugin.video.plexbmc/?url=http://%s%s&mode=%s%s,return" % ( server_address, "/recentlyAdded", _MODE_PHOTOS, aToken)
+            p_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Path" % recentPhotoCount, p_url)
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Title" % recentPhotoCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestPhoto.%s.Thumb" % recentPhotoCount, p_thumb)
+
+            recentPhotoCount += 1
+
+            printDebug("Building Recent photo window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building Recent photo window url: %s" % p_url)
+            printDebug("Building Recent photo window thumb: %s" % p_thumb)
+
+        elif media.get('type',None) == "episode":
+
+            printDebug("Found an Recent episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('tvShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
+                continue
+
+            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            #s_thumb="http://"+server_address+media.get('grandparentThumb','')
+            s_thumb=getShelfThumb(media,server_address,seasonThumb=1)+aToken
+
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Path" % recentSeasonCount, s_url )
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeTitle" % recentSeasonCount, media.get('title','').encode('utf-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeNumber" % recentSeasonCount, media.get('index','').encode('utf-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeSeason" % recentSeasonCount, media.get('parentIndex','').encode('UTF-8')+'.'+media.get('index','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.EpisodeSeasonNumber" % recentSeasonCount, media.get('parentIndex','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.ShowTitle" % recentSeasonCount, media.get('grandparentTitle','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.Thumb" % recentSeasonCount, s_thumb)
+            WINDOW.setProperty("Plexbmc.LatestEpisode.%s.uuid" % recentSeasonCount, libuuid.encode('utf-8'))
+
+            recentSeasonCount += 1
+
+            printDebug("Building Recent window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building Recent window url: %s" % s_url)
+            printDebug("Building Recent window thumb: %s" % s_thumb)
+
+    clearShelf( recentMovieCount, recentSeasonCount, recentMusicCount, recentPhotoCount)
+
+    #For each of the servers we have identified
+    for index in sorted(ondeck_list, reverse=direction):
+
+        media = ondeck_list[index][0]
+        server_address = ondeck_list[index][1]
+        aToken = ondeck_list[index][2]
+        qToken = ondeck_list[index][3]
+        libuuid = ondeck_list[index][4]
+
+        if media.get('type',None) == "movie":
+
+            printDebug("Found a OnDeck movie entry: [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('movieShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.OnDeckMovie.1.Path" )
+                continue
+
+            m_url="plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            m_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Path" % ondeckMovieCount, m_url)
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Title" % ondeckMovieCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Year" % ondeckMovieCount, media.get('year','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Rating" % ondeckMovieCount, media.get('rating',''))
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.Thumb" % ondeckMovieCount, m_thumb)
+            WINDOW.setProperty("Plexbmc.OnDeckMovie.%s.uuid" % ondeckMovieCount, libuuid.encode('UTF-8'))
+
+            ondeckMovieCount += 1
+
+            printDebug("Building OnDeck Movie window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building OnDeck Movie window url: %s" % m_url)
+            printDebug("Building OnDeck Movie window thumb: %s" % m_thumb)
+
+        elif media.get('type',None) == "season":
+
+            printDebug("Found a OnDeck season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('tvShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
+                continue
+
+            s_url="ActivateWindow(VideoLibrary, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_TVEPISODES, aToken)
+            s_thumb=getShelfThumb(media,server_address,seasonThumb=0)+aToken
+
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Path" % ondeckSeasonCount, s_url )
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeTitle" % ondeckSeasonCount, '')
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeason" % ondeckSeasonCount, media.get('title','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle" % ondeckSeasonCount, media.get('parentTitle','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % ondeckSeasonCount, s_thumb)
+
+            ondeckSeasonCount += 1
+
+            printDebug("Building OnDeck window title: %s" % media.get('parentTitle','Unknown').encode('UTF-8'))
+            printDebug("Building OnDeck window url: %s" % s_url)
+            printDebug("Building OnDeck window thumb: %s" % s_thumb)
+
+        elif media.get('type',None) == "episode":
+
+            printDebug("Found an onDeck episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
+
+            if __settings__.getSetting('tvShelf') == "false":
+                WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
+                continue
+
+            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            #s_thumb="http://"+server_address+media.get('grandparentThumb','')
+            s_thumb=getShelfThumb(media,server_address,seasonThumb=1)+aToken
+
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Path" % ondeckSeasonCount, s_url )
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeTitle" % ondeckSeasonCount, media.get('title','').encode('utf-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeNumber" % ondeckSeasonCount, media.get('index','').encode('utf-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeason" % ondeckSeasonCount, media.get('grandparentTitle','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeasonNumber" % ondeckSeasonCount, media.get('parentIndex','').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle" % ondeckSeasonCount, media.get('title','Unknown').encode('UTF-8'))
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % ondeckSeasonCount, s_thumb)
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.uuid" % ondeckSeasonCount, libuuid.encode('UTF-8'))
+
+            ondeckSeasonCount += 1
+
+            printDebug("Building OnDeck window title: %s" % media.get('title','Unknown').encode('UTF-8'))
+            printDebug("Building OnDeck window url: %s" % s_url)
+            printDebug("Building OnDeck window thumb: %s" % s_thumb)
+
+    clearOnDeckShelf(ondeckMovieCount, ondeckSeasonCount)
 
 def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     #Clear out old data
@@ -4596,6 +5108,13 @@ if str(sys.argv[1]) == "skin":
     except:
         type=None
     skin(type=type)
+
+elif str(sys.argv[1]) == "amberskin":
+    try:
+        type=sys.argv[2]
+    except:
+        type=None
+    amberskin(type=type)
  
 #Populate recently/on deck shelf items 
 elif str(sys.argv[1]) == "shelf":
