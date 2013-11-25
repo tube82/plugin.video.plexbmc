@@ -2473,7 +2473,7 @@ def processDirectory( url, tree=None ):
     setWindowHeading(tree)
     for directory in tree:
         details={'title' : directory.get('title','Unknown').encode('utf-8') }
-        extraData={'thumb'        : getThumb(directory, server) ,
+        extraData={'thumb'        : getThumb(directory, server),
                    'fanart_image' : getFanart(tree, server, False) }
 
         if extraData['thumb'] == '':
@@ -2727,7 +2727,7 @@ def PlexPlugins( url, tree=None ):
         @return: nothing, creates XBMC GUI listing
     '''
     printDebug("== ENTER: PlexPlugins ==", False)
-    xbmcplugin.setContent(pluginhandle, 'movies')
+    xbmcplugin.setContent(pluginhandle, 'episodes')
 
     tree=getXML(url,tree)
     if tree is None:
@@ -2750,7 +2750,7 @@ def PlexPlugins( url, tree=None ):
         if plugin.get('summary'):
             details['plot']=plugin.get('summary')
 
-        extraData={'thumb'        : getThumb(plugin, server) ,
+        extraData={'thumb'        : getThumb(plugin, server, False) ,
                    'fanart_image' : getFanart(plugin, server) ,
                    'identifier'   : tree.get('identifier','') ,
                    'type'         : "Video" ,
@@ -3188,7 +3188,7 @@ def music( url, tree=None ):
 
     xbmcplugin.endOfDirectory(pluginhandle,cacheToDisc=False)
 
-def getThumb( data, server, transcode=True, width=720, height=720 ):
+def getThumb (data, server, transcode=True, width=720, height=720):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
@@ -3197,16 +3197,19 @@ def getThumb( data, server, transcode=True, width=720, height=720 ):
     
     if g_skipimages == "true":
         return ''
-    
+
     thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
-    
+
     if thumbnail == '':
         return g_loc+'/resources/plex.png'
 
-    else:
+    elif transcode:
         return photoTranscode(server, thumbnail, width, height)
 
-def getShelfThumb( data, server, seasonThumb, width=400, height=400 ):
+    else:
+        return thumbnail
+
+def getShelfThumb (data, server, seasonThumb, width=400, height=400):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
@@ -3225,7 +3228,7 @@ def getShelfThumb( data, server, seasonThumb, width=400, height=400 ):
     else:
         return photoTranscode(server, thumbnail, width, height)
 
-def getFanart( data, server, transcode=True, width=1280, height=720 ):
+def getFanart (data, server, transcode=True, width=1280, height=720):
     '''
         Simply take a URL or path and determine how to format for fanart
         @ input: elementTree element, server name
@@ -3744,7 +3747,7 @@ def amberskin(server_list=None, type=None):
         sectionCount += 1
 
 
-    if type == "nocat" and hide_shared == 'true' and sharedCount != 0:
+    if __settings__.getSetting('myplex_user') != '' and type == "nocat" and hide_shared == 'true' and sharedCount != 0:
         WINDOW.setProperty("plexbmc.%d.title"    % (sectionCount) , "Shared Content")
         WINDOW.setProperty("plexbmc.%d.subtitle" % (sectionCount) , "Shared")
         WINDOW.setProperty("plexbmc.%d.path"     % (sectionCount) , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=/&mode="+str(_MODE_SHARED_ALL)+",return)")
@@ -3791,6 +3794,7 @@ def amberskin(server_list=None, type=None):
 
     #For each of the servers we have identified
     numOfServers=len(server_list)
+    shelfChannel (server_list)
 
     for server in server_list.values():
 
@@ -3848,6 +3852,7 @@ def amberskin(server_list=None, type=None):
     printDebug("Total number of servers is ["+str(numOfServers)+"]")
     WINDOW.setProperty("plexbmc.sectionCount", str(sectionCount))
     WINDOW.setProperty("plexbmc.numServers", str(numOfServers))
+
     if __settings__.getSetting('myplex_user') != '':
         WINDOW.setProperty("plexbmc.queue" , "ActivateWindow(VideoLibrary,plugin://plugin.video.plexbmc/?url=http://myplexqueue&mode=24,return)")
         WINDOW.setProperty("plexbmc.myplex",  "1" )
@@ -4503,7 +4508,7 @@ def fullShelf(server_list=None):
             printDebug("Building Recent window url: %s" % s_url)
             printDebug("Building Recent window thumb: %s" % s_thumb)
 
-    clearShelf( recentMovieCount, recentSeasonCount, recentMusicCount, recentPhotoCount)
+    clearShelf(recentMovieCount, recentSeasonCount, recentMusicCount, recentPhotoCount)
 
     #For each of the servers we have identified
     for index in sorted(ondeck_list, reverse=direction):
@@ -4569,17 +4574,17 @@ def fullShelf(server_list=None):
                 WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
                 continue
 
-            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % (getLinkURL('http://'+server_address, media, server_address), _MODE_PLAYSHELF, randomNumber, aToken)
             #s_thumb="http://"+server_address+media.get('grandparentThumb','')
-            s_thumb=getShelfThumb(media,server_address,seasonThumb=1)+aToken
+            s_thumb=getShelfThumb(media, server_address, seasonThumb=1)
 
-            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Path" % ondeckSeasonCount, s_url )
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Path" % ondeckSeasonCount, s_url)
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeTitle" % ondeckSeasonCount, media.get('title','').encode('utf-8'))
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeNumber" % ondeckSeasonCount, media.get('index','').encode('utf-8'))
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeason" % ondeckSeasonCount, media.get('grandparentTitle','Unknown').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.EpisodeSeasonNumber" % ondeckSeasonCount, media.get('parentIndex','').encode('UTF-8'))
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.ShowTitle" % ondeckSeasonCount, media.get('title','Unknown').encode('UTF-8'))
-            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % ondeckSeasonCount, s_thumb)
+            WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.Thumb" % ondeckSeasonCount, s_thumb+aToken)
             WINDOW.setProperty("Plexbmc.OnDeckEpisode.%s.uuid" % ondeckSeasonCount, libuuid.encode('UTF-8'))
 
             ondeckSeasonCount += 1
@@ -4589,6 +4594,10 @@ def fullShelf(server_list=None):
             printDebug("Building OnDeck window thumb: %s" % s_thumb)
 
     clearOnDeckShelf(ondeckMovieCount, ondeckSeasonCount)
+    if __settings__.getSetting('channelShelf') == "false":
+        shelfChannel(server_list)
+    else:
+        pass
 
 def clearShelf (movieCount=0, seasonCount=0, musicCount=0, photoCount=0):
     #Clear out old data
@@ -4665,7 +4674,7 @@ def clearOnDeckShelf (movieCount=0, seasonCount=0):
 
     return
 
-def shelfChannel( server_list = None):
+def shelfChannel(server_list = None):
     #Gather some data and set the window properties
     printDebug("== ENTER: shelfChannels() ==", False)
     
@@ -4734,7 +4743,7 @@ def shelfChannel( server_list = None):
 
 
                 p_url="ActivateWindow(%s, plugin://plugin.video.plexbmc?url=%s&mode=%s%s, return)" % ( channel_window, getLinkURL('http://'+server_details['server']+":"+server_details['port'],media,server_details['server']+":"+server_details['port']), mode , aToken)
-                p_thumb=getThumb(media,server_details['server']+":"+server_details['port'])
+                p_thumb=getThumb(media,server_details['server']+":"+server_details['port'], False)
 
                 WINDOW.setProperty("Plexbmc.LatestChannel.%s.Path" % channelCount, p_url)
                 WINDOW.setProperty("Plexbmc.LatestChannel.%s.Title" % channelCount, media.get('title','Unknown'))
