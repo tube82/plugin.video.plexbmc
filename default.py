@@ -47,49 +47,26 @@ try:
 except ImportError:
     import pickle
 
+try:
+    import xml.etree.cElementTree as etree
+except ImportError:
+    import xml.etree.ElementTree as etree
+
+__addon__ = xbmcaddon.Addon()
+__cachedir__ = __addon__.getAddonInfo('profile')
 __settings__ = xbmcaddon.Addon(id='plugin.video.plexbmc')
 __cwd__ = __settings__.getAddonInfo('path')
 BASE_RESOURCE_PATH = xbmc.translatePath( os.path.join( __cwd__, 'resources', 'lib' ) )
 PLUGINPATH=xbmc.translatePath( os.path.join( __cwd__) )
 CACHEDATA=PLUGINPATH+"/cache"
 sys.path.append(BASE_RESOURCE_PATH)
-PLEXBMC_VERSION="3.2.5"
+PLEXBMC_VERSION = __addon__.getAddonInfo('version')
 
 print "===== PLEXBMC START ====="
 
 print "PleXBMC -> running Python: " + str(sys.version_info)
 print "PleXBMC -> running PleXBMC: " + str(PLEXBMC_VERSION)
 
-try:
-  from lxml import etree
-  print("PleXBMC -> Running with lxml.etree")
-except ImportError:
-  try:
-    # Python 2.5
-    import xml.etree.cElementTree as etree
-    print("PleXBMC -> Running with cElementTree on Python 2.5+")
-  except ImportError:
-    try:
-      # Python 2.5
-      import xml.etree.ElementTree as etree
-      print("PleXBMC -> Running with ElementTree on Python 2.5+")
-    except ImportError:
-      try:
-        # normal cElementTree install
-        import cElementTree as etree
-        print("PleXBMC -> Running with built-in cElementTree")
-      except ImportError:
-        try:
-          # normal ElementTree install
-          import elementtree.ElementTree as etree
-          print("PleXBMC -> Running with built-in ElementTree")
-        except ImportError:
-            try:
-                import ElementTree as etree
-                print("PleXBMC -> Running addon ElementTree version")
-            except ImportError:
-                print("PleXBMC -> Failed to import ElementTree from any known place")
-    
 #Get the setting from the appropriate file.
 DEFAULT_PORT="32400"
 MYPLEX_SERVER="my.plexapp.com"
@@ -230,6 +207,7 @@ g_txheaders = {
 #Set up holding variable for session ID
 global g_sessionID
 g_sessionID = None
+
 global section_list
 section_list = None
         
@@ -621,7 +599,6 @@ def getAllSections( server_list = None ):
                     
             myplex_section_list = [x for x in myplex_section_list if not x['uuid'] == each_server['uuid']]
             
-    global section_list
     section_list += myplex_section_list
 
     return section_list
@@ -3194,39 +3171,51 @@ def getThumb (data, server, transcode=True, width=720, height=720):
         @ input: elementTree element, server name
         @ return formatted URL
     '''
-    
-    if g_skipimages == "true":
-        return ''
-
     thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
 
     if thumbnail == '':
         return g_loc+'/resources/plex.png'
 
-    elif transcode:
-        return photoTranscode(server, thumbnail, width, height)
-
-    else:
+    elif thumbnail[0:4] == "http" :
         return thumbnail
 
-def getShelfThumb (data, server, seasonThumb, width=400, height=400):
+    elif thumbnail[0] == '/':
+        if transcode:
+            return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
+        else:
+            return 'http://'+server+thumbnail
+
+    else:
+        return g_loc+'/resources/plex.png'
+
+def getShelfThumb(data, server, seasonThumb, width=400, height=400):
     '''
         Simply take a URL or path and determine how to format for images
         @ input: elementTree element, server name
         @ return formatted URL
     '''
+    transcode=True
     
     if seasonThumb == 1:
-        thumbnail=data.get('grandparentThumb','').split('?t')[0].encode('utf-8')
+        thumbnail=data.get('grandparentThumb','').split('?t')[0].encode('utf-8')    
     
-    else: 
+    else:
         thumbnail=data.get('thumb','').split('?t')[0].encode('utf-8')
-    
+
     if thumbnail == '':
         return g_loc+'/resources/plex.png'
 
+    elif thumbnail[0:4] == "http" :
+        return thumbnail
+
+    elif thumbnail[0] == '/':
+        if transcode:
+            return photoTranscode(server,'http://localhost:32400'+thumbnail,width,height)
+        else:
+            return 'http://'+server+thumbnail
+
     else:
-        return photoTranscode(server, thumbnail, width, height)
+        return g_loc+'/resources/plex.png'
 
 def getFanart (data, server, transcode=True, width=1280, height=720):
     '''
@@ -4489,7 +4478,7 @@ def fullShelf(server_list=None):
                 WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
                 continue
 
-            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address,media,server_address), _MODE_PLAYSHELF, randomNumber, aToken)
+            s_url="PlayMedia(plugin://plugin.video.plexbmc?url=%s&mode=%s&t=%s%s)" % ( getLinkURL('http://'+server_address, media, server_address), _MODE_PLAYSHELF, randomNumber, aToken)
             #s_thumb="http://"+server_address+media.get('grandparentThumb','')
             s_thumb=getShelfThumb(media,server_address,seasonThumb=1)+aToken
 
