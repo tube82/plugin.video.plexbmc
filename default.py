@@ -4042,7 +4042,7 @@ def shelf( server_list=None ):
 
             printDebug("Found a recent season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '1':
                 WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
                 continue
 
@@ -4101,7 +4101,7 @@ def shelf( server_list=None ):
 
             printDebug("Found an Recent episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '1':
                 WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
                 continue
 
@@ -4238,7 +4238,7 @@ def shelfOnDeck( server_list=None ):
 
                 printDebug("Found a OnDeck season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
 
-                if __settings__.getSetting('tvShelf') == "false":
+                if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '0':
                     WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
                     continue
 
@@ -4260,7 +4260,7 @@ def shelfOnDeck( server_list=None ):
 
                 printDebug("Found an onDeck episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
 
-                if __settings__.getSetting('tvShelf') == "false":
+                if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '0':
                     WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
                     continue
 
@@ -4412,7 +4412,7 @@ def fullShelf(server_list=None):
 
             printDebug("Found a recent season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '1':
                 WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
                 continue
 
@@ -4474,7 +4474,7 @@ def fullShelf(server_list=None):
 
             printDebug("Found an Recent episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '1':
                 WINDOW.clearProperty("Plexbmc.LatestEpisode.1.Path" )
                 continue
 
@@ -4536,7 +4536,7 @@ def fullShelf(server_list=None):
 
             printDebug("Found a OnDeck season entry [%s]" % ( media.get('parentTitle','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '0':
                 WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
                 continue
 
@@ -4559,7 +4559,7 @@ def fullShelf(server_list=None):
 
             printDebug("Found an onDeck episode entry [%s]" % ( media.get('title','Unknown').encode('UTF-8') , ))
 
-            if __settings__.getSetting('tvShelf') == "false":
+            if __settings__.getSetting('tvShelf') == "false" or __settings__.getSetting('homeshelf') == '0':
                 WINDOW.clearProperty("Plexbmc.OnDeckEpisode.1.Path" )
                 continue
 
